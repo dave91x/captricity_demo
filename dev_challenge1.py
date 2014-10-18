@@ -5,22 +5,25 @@ import captools.api
 import json
 from captools.api import Client
 
-api_token = os.environ.get("Captricity_API_Token", None)
-print api_token
+BATCH_NAME = 'Customer Survey 2014'
+TEMPLATE_NAME = 'Form_012rev1'
+API_TOKEN = os.environ.get("Captricity_API_Token", None)
+
+print "API Token: ", API_TOKEN
 print
 
 # For this example and in future examples, client refers to a Client object from captools.api.Client 
-client = Client(api_token)
+client = Client(API_TOKEN)
 
 # The Batch resource is a collection of Batch Files. 
 # The first step to digitizing your forms is to create a new batch:
 ### only on first run
-# batch = client.create_batches({'name': "Customer Survey 2014"})
+batch = client.create_batches({'name': BATCH_NAME})
 
 
 batches = client.read_batches()
-batch_id = filter(lambda x: x['name'] == 'Customer Survey 2014', batches).pop()['id']
-print batch_id
+batch_id = filter(lambda x: x['name'] == BATCH_NAME, batches).pop()['id']
+print "Batch ID: ", batch_id
 print
 
 # batch = client.read_batch(batch_id)
@@ -36,16 +39,16 @@ documents = client.read_documents()
 
 
 # Select the id of the template you would like to use. -- Form_012rev1 -- created on 10.17.14
-document_id = filter(lambda x: x['name'] == 'Form_012rev1', documents).pop()['id']
+document_id = filter(lambda x: x['name'] == TEMPLATE_NAME, documents).pop()['id']
 print 'Template ID: ', document_id
 print
 
 
-# sys.exit()
+# sys.exit() # get out now
 # Once you have the id of the document, you can assign the document to the batch. 
 # You can also do this step after you have uploaded your files.
 
-client.update_batch(batch_id, { 'documents': document_id })
+client.update_batch(batch_id, { 'documents': document_id, 'name': BATCH_NAME })
 
 
 # Loop over files to upload:
@@ -61,7 +64,7 @@ batch_file = client.create_batch_files(batch_id, { 'uploaded_file': open('scanne
 print
 batch_files = client.read_batch_files(batch_id)
 for bf in batch_files:
-    print bf['file_name'], '-', bf['id']
+    print "File: ", bf['file_name'], ',  size: ', bf['id'], "bytes"
 print
 
 
@@ -70,17 +73,30 @@ print
 # ensure that it is ready to be submitted. Use the Batch Readiness resource to 
 # detect any problems in your completed forms or templates.
 
-print client.read_batch_readiness(batch_id)
+batch_ready_status = client.read_batch_readiness(batch_id)
+print batch_ready_status
 print
 
 # Check the errors property to ensure your Batch can be submitted. 
 # There must be no errors for the batch to go through. 
 # The other properties of this resource give you details on corrective action 
 #   if your Batch is not ready for submission.
+
+if len(batch_ready_status['errors']) > 0:
+    print "Uh oh! Looks like there was a problem with your batch setup."
+    print "Exiting so you can correct the problems."
+    print
+    print batch_ready_status['errors']
+    sys.exit() # get out now
+else:
+    print "Yeah!  Your batch is error free and ready to process."
+
+
 # Batch submission charges your Captricity account. 
 # Check the pricing details of your Batch using the Batch Price resource:
 
 batch_price = client.read_batch_price(batch_id)
+print
 print batch_price
 print
 
@@ -93,15 +109,16 @@ print
 #   Submit Batch resource. This charges your account and begins the digitization process 
 #   of your Batch.
 
-sys.exit()
+
+sys.exit() # get out now
 submitted_batch = client.submit_batch(batch_id, {})
 
-
+sys.exit() # get out now
 # At this point, your batch will be converted into a Job. 
 # You can use the related_job_id property of the Batch to look up the Job resource.
 # loop on the job to get status
 
-while true:
+while True:
     job_progress = client.read_job(submitted_batch['related_job_id'])['percent_completed']
     print "Progress: ", job_progress+'%'
     if job_progress >= 100:
