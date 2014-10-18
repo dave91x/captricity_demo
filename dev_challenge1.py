@@ -1,6 +1,7 @@
 import os
 import sys
 import glob
+import time
 import captools.api
 import json
 from captools.api import Client
@@ -64,7 +65,7 @@ batch_file = client.create_batch_files(batch_id, { 'uploaded_file': open('scanne
 print
 batch_files = client.read_batch_files(batch_id)
 for bf in batch_files:
-    print "File: ", bf['file_name'], ',  size: ', bf['id'], "bytes"
+    print "File: ", bf['file_name'], '--  size: ', bf['id'], "bytes"
 print
 
 
@@ -110,15 +111,16 @@ print
 #   of your Batch.
 
 
-sys.exit() # get out now
+# sys.exit() # get out now
 submitted_batch = client.submit_batch(batch_id, {})
 
-sys.exit() # get out now
+# sys.exit() # get out now
 # At this point, your batch will be converted into a Job. 
 # You can use the related_job_id property of the Batch to look up the Job resource.
 # loop on the job to get status
 
 while True:
+    time.sleep(60)
     job_progress = client.read_job(submitted_batch['related_job_id'])['percent_completed']
     print "Progress: ", job_progress+'%'
     if job_progress >= 100:
@@ -138,6 +140,7 @@ instance_sets = client.read_instance_sets(submitted_batch['related_job_id'])
 # Once you have found the id of your Instance Set, you can then list all the Shreds 
 # in that Instance Set using the Instance Set Shreds resource:
 
+print
 print client.read_instance_set_shreds(instance_sets[0]['id'])
 print 
 
@@ -146,6 +149,8 @@ print
 
 csv_out = client.read_job_results_csv(submitted_batch['related_job_id'])
 
+print "Data out:"
+print "========="
 print csv_out
 
 
