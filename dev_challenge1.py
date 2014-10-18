@@ -14,9 +14,8 @@ client = Client(api_token)
 
 # The Batch resource is a collection of Batch Files. 
 # The first step to digitizing your forms is to create a new batch:
-
+### only on first run
 # batch = client.create_batches({'name': "Customer Survey 2014"})
-# print batch['id']
 
 
 batches = client.read_batches()
@@ -41,7 +40,8 @@ document_id = filter(lambda x: x['name'] == 'Form_012rev1', documents).pop()['id
 print 'Template ID: ', document_id
 print
 
-sys.exit()
+
+# sys.exit()
 # Once you have the id of the document, you can assign the document to the batch. 
 # You can also do this step after you have uploaded your files.
 
@@ -49,12 +49,14 @@ client.update_batch(batch_id, { 'documents': document_id })
 
 
 # Loop over files to upload:
-
-for img in glob.glob('scanned_images/*.pdf'):
-    if os.path.isfile(img):
-        f = open(img, 'rb')
-        print f.name+', '+str(os.fstat(f.fileno()).st_size)
-        batch_file = client.create_batch_files(batch_id, {'uploaded_file': f})
+### only on first run
+# start with just one file in the batch for testing
+batch_file = client.create_batch_files(batch_id, { 'uploaded_file': open('scanned_images/survey1.pdf', 'rb') })
+# for img in glob.glob('scanned_images/*.pdf'):
+#     if os.path.isfile(img):
+#         f = open(img, 'rb')
+#         print f.name+', '+str(os.fstat(f.fileno()).st_size)
+#         batch_file = client.create_batch_files(batch_id, {'uploaded_file': f})
 
 print
 batch_files = client.read_batch_files(batch_id)
@@ -79,7 +81,8 @@ print
 # Check the pricing details of your Batch using the Batch Price resource:
 
 batch_price = client.read_batch_price(batch_id)
-
+print batch_price
+print
 
 # The total_batch_cost_in_fields property is the price of digitizing the batch in fields. 
 # The total_user_cost_in_cents is the total charge to your account for running the Batch. 
@@ -90,13 +93,19 @@ batch_price = client.read_batch_price(batch_id)
 #   Submit Batch resource. This charges your account and begins the digitization process 
 #   of your Batch.
 
-batch = client.submit_batch(batch_id, {})
+sys.exit()
+submitted_batch = client.submit_batch(batch_id, {})
 
 
 # At this point, your batch will be converted into a Job. 
 # You can use the related_job_id property of the Batch to look up the Job resource.
+# loop on the job to get status
 
-job = client.read_job(job_id)
+while true:
+    job_progress = client.read_job(submitted_batch['related_job_id'])['percent_completed']
+    print "Progress: ", job_progress+'%'
+    if job_progress >= 100:
+        break 
 
 
 # Digitization time varies between a few minutes to a few hours depending on your Job's size. 
@@ -106,18 +115,19 @@ job = client.read_job(job_id)
 #   data for just the Shreds in that Instance Set. 
 # First, find your Instance Set's id by listing all the Instance Sets in the Job:
 
-instance_sets = client.read_instance_sets(job_id)
+instance_sets = client.read_instance_sets(submitted_batch['related_job_id'])
 
 
 # Once you have found the id of your Instance Set, you can then list all the Shreds 
 # in that Instance Set using the Instance Set Shreds resource:
 
-client.read_instance_set_shreds(instance_sets[0]['id'])
+print client.read_instance_set_shreds(instance_sets[0]['id'])
+print 
 
 # The result of the digitization is in the best_estimate property of each Shred.
 # If you'd like the whole dataset, grab the CSV export from the Job Results CSV resource.
 
-csv_out = client.read_job_results_csv(job_id)
+csv_out = client.read_job_results_csv(submitted_batch['related_job_id'])
 
 print csv_out
 
