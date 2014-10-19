@@ -122,7 +122,7 @@ submitted_batch = client.submit_batch(batch_id, {})
 while True:
     time.sleep(60)
     job_progress = client.read_job(submitted_batch['related_job_id'])['percent_completed']
-    print "Progress: ", job_progress+'%'
+    print "Progress: ", job_progress,'%'
     if job_progress >= 100:
         break 
 
