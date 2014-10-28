@@ -6,9 +6,9 @@ import captools.api
 import json
 from captools.api import Client
 
-BATCH_NAME = 'Customer Survey 2014'
-TEMPLATE_NAME = 'Form_012rev1'
-API_TOKEN = os.environ.get("Captricity_API_Token", None)
+BATCH_NAME = 'test-20141027164230'
+TEMPLATE_NAME = 'challenge'
+API_TOKEN = os.environ.get("CAPTRICITY_API_TOKEN", None)
 
 print "API Token: ", API_TOKEN
 print
@@ -19,7 +19,7 @@ client = Client(API_TOKEN)
 # The Batch resource is a collection of Batch Files. 
 # The first step to digitizing your forms is to create a new batch:
 ### only on first run
-batch = client.create_batches({'name': BATCH_NAME})
+# batch = client.create_batches({'name': BATCH_NAME})
 
 
 batches = client.read_batches()
@@ -49,13 +49,13 @@ print
 # Once you have the id of the document, you can assign the document to the batch. 
 # You can also do this step after you have uploaded your files.
 
-client.update_batch(batch_id, { 'documents': document_id, 'name': BATCH_NAME })
+# client.update_batch(batch_id, { 'documents': document_id, 'name': BATCH_NAME })
 
 
 # Loop over files to upload:
 ### only on first run
 # start with just one file in the batch for testing
-batch_file = client.create_batch_files(batch_id, { 'uploaded_file': open('scanned_images/survey1.pdf', 'rb') })
+# batch_file = client.create_batch_files(batch_id, { 'uploaded_file': open('scanned_images/survey1.pdf', 'rb') })
 # for img in glob.glob('scanned_images/*.pdf'):
 #     if os.path.isfile(img):
 #         f = open(img, 'rb')
@@ -111,8 +111,8 @@ print
 #   of your Batch.
 
 
-# sys.exit() # get out now
-submitted_batch = client.submit_batch(batch_id, {})
+sys.exit() # get out now
+# submitted_batch = client.submit_batch(batch_id, {})
 
 # sys.exit() # get out now
 # At this point, your batch will be converted into a Job. 
